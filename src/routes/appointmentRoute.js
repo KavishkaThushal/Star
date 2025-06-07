@@ -7,9 +7,9 @@ import {
 import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
 
-router.post("/create-appointment", verifyToken, makeAppointment); //create appointment by user
-router.get("/get-user-appointments", verifyToken, getAppointments); //get all appointments by userId
+router.post("/create-appointment", verifyToken, makeAppointment);
+router.get("/get-user-appointments", verifyToken, getAppointments);
 router.delete("/cancel-appointment/:id", verifyToken, cancelAppointment);
-router.get('/fetch/all', getAllAppointments);
-router.put('/progress/:id', updateAppointmentProgress);
+router.get('/fetch/all', verifyToken, getAllAppointments);
+router.put('/progress/:id',verifyToken, updateAppointmentProgress);
 export { router as appointmentRouter };

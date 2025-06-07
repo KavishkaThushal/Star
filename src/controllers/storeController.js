@@ -14,7 +14,6 @@ export const getAllStores = async (req, res) => {
   }
 };
 
-// Create new product
 export const createStoreProduct = async (req, res) => {
   try {
     const {
@@ -29,7 +28,12 @@ export const createStoreProduct = async (req, res) => {
       imageUrl
     } = req.body;
 
-    const parsedFeatures = Array.isArray(features) ? features : JSON.parse(features);
+    let parsedFeatures;
+    if (typeof features === 'string') {
+      parsedFeatures = JSON.parse(features);
+    } else {
+      parsedFeatures = features;
+    }
 
     const newProduct = new StoreModel({
       name,
@@ -40,7 +44,7 @@ export const createStoreProduct = async (req, res) => {
       stock,
       category,
       features: parsedFeatures,
-      image: imageUrl, // <-- Use Cloudinary URL
+      image: imageUrl,
     });
 
     await newProduct.save();
@@ -51,7 +55,6 @@ export const createStoreProduct = async (req, res) => {
   }
 };
 
-// Update existing product
 export const updateStoreProduct = async (req, res) => {
   try {
     const productId = req.params.id;
@@ -67,7 +70,12 @@ export const updateStoreProduct = async (req, res) => {
       imageUrl
     } = req.body;
 
-    const parsedFeatures = Array.isArray(features) ? features : JSON.parse(features);
+    let parsedFeatures;
+    if (typeof features === 'string') {
+      parsedFeatures = JSON.parse(features);
+    } else {
+      parsedFeatures = features;
+    }
 
     const updatedFields = {
       name,
@@ -121,3 +129,31 @@ export const deleteItem = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getStores = async (req, res) => {
+  try {
+    const { category, brand, maxPrice } = req.query
+
+    const filter = {}
+
+    if (category) {
+      const categories = category.split(',')
+      filter.category = { $in: categories }
+    }
+
+    if (brand) {
+      const brands = brand.split(',')
+      filter.brand = { $in: brands }
+    }
+
+    if (maxPrice) {
+      filter.price = { $lte: Number(maxPrice) }
+    }
+
+    const stores = await StoreModel.find(filter)
+    res.json(stores)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Server Error' })
+  }
+}
