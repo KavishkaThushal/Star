@@ -19,10 +19,16 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },
-    refreshToken: {
-      type: String,
-      enum: ["admin", "user"],
-    },
+   role:{
+       type: String,
+       enum: ["admin", "user"],
+   },
+   appointments: [
+          {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Appointment",
+          },
+      ],
   },
   {
     timestamps: true,
