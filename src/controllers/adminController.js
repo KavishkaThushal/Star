@@ -5,9 +5,10 @@ import {
 import { productValidation } from "../validations/adminValidation.js";
 import AppointmentModel from "../models/appointmentModel.js";
 import StoreModel from "../models/storeModel.js";
-import { hashPassword, hashRefreshToken } from "../utils/authUtils.js";
+import {comparePassword, hashPassword, hashRefreshToken} from "../utils/authUtils.js";
 import { loginValidation } from "../validations/authValidation.js";
 import UserModel from "../models/userModel.js";
+import {generateAccessToken, generateRefreshToken} from "../utils/tokenUtils.js";
 
 export const addProduct = async (req, res) => {
   const {
@@ -133,51 +134,53 @@ export const getProduct = async (req, res) => {
 
 export const adminLogin = async (req, res) => {
   try {
-    const validationErrors = loginValidation(req.body);
+    console.log(process.env.ADMIN_SECRET);
+    console.log(process.env.ADMIN_EMAIL);
 
+    const validationErrors = loginValidation(req.body);
     if (Object.keys(validationErrors).length > 0)
       return sendErrorResponse(res, 400, validationErrors);
-    const existAdmin = await UserModel.find({ role: "admin" }).lean();
-    if (existAdmin.length === 0) {
+
+    const existAdmin = await UserModel.findOne({ role: "admin" });
+    if (!existAdmin) {
       const hashedPassword = await hashPassword(process.env.ADMIN_SECRET);
       await UserModel.create({
-        userName:"Star Admin",
+        userName: "Star Admin",
         email: process.env.ADMIN_EMAIL,
         password: hashedPassword,
         role: "admin",
       });
       return sendSuccessResponse(res, 201, "Admin created successfully");
-    } else {
-      const user = await UserModel.findOne({
-        email: req.body.email,
-        role: req.body.role,
-      });
-      if (!user) {
-        return sendErrorResponse(res, 404, "User does not exist");
-      }
-
-      const isMatch = await comparePassword(req.body.password, user.password);
-      if (!isMatch) {
-        return sendErrorResponse(res, 400, "Invalid credentials");
-      }
-
-      const accessToken = generateAccessToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-      const hashedRefreshToken = await hashRefreshToken(refreshToken);
-      user.refreshToken = hashedRefreshToken;
-      await user.save();
-
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-      return sendSuccessResponse(res, 200, "Login successful", {
-        accessToken,
-      });
     }
+
+    const user = await UserModel.findOne({
+      email: req.body.email,
+      role: "admin", // Don't take this from req.body
+    });
+    if (!user) return sendErrorResponse(res, 404, "Admin not found");
+
+    const isMatch = await comparePassword(req.body.password, user.password);
+    if (!isMatch) return sendErrorResponse(res, 400, "Invalid credentials");
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    const hashedRefreshToken = await hashRefreshToken(refreshToken);
+
+    user.refreshToken = hashedRefreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return sendSuccessResponse(res, 200, "Admin login successful", {
+      accessToken,
+    });
   } catch (err) {
     return sendErrorResponse(res, 500, "Internal server error", err);
   }
 };
+

@@ -7,13 +7,13 @@ import {
   sendSuccessResponse,
 } from "../utils/responseUtil.js";
 import {
-  comparePassword,
+  comparePassword, compareRefreshToken,
   hashPassword,
   hashRefreshToken,
 } from "../utils/authUtils.js";
 import {
   generateAccessToken,
-  generateRefreshToken,
+  generateRefreshToken, verifyRefreshToken,
 } from "../utils/tokenUtils.js";
 import UserModel from "../models/userModel.js";
 import dotenv from "dotenv";
@@ -101,5 +101,32 @@ export const logout = async (req, res) => {
     return sendSuccessResponse(res, 200, "Logout successful");
   } catch (err) {
     return sendErrorResponse(res, 500, "Internal server error ", err);
+  }
+};
+
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return sendErrorResponse(res, 401, "No refresh token provided");
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await UserModel.findById(decoded.userId);
+    if (!user || !user.refreshToken) {
+      return sendErrorResponse(res, 403, "Refresh token invalid or user not found");
+    }
+
+    const isMatch = await compareRefreshToken(refreshToken, user.refreshToken);
+    if (!isMatch) {
+      return sendErrorResponse(res, 403, "Refresh token does not match");
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+    return sendSuccessResponse(res, 200, "New access token issued", {
+      accessToken: newAccessToken,
+    });
+  } catch (err) {
+    return sendErrorResponse(res, 401, "Invalid or expired refresh token", err);
   }
 };

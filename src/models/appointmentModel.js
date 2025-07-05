@@ -18,7 +18,6 @@ const appointmentSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     phoneNumber: {
       type: Number,
@@ -28,9 +27,13 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+      appointDate: {
+          type: Date,
+          required: true,
+      },
     progress: {
       type: String,
-      enum: ["pending", "completed", "cancelled"],
+      enum: ["pending", "completed", "cancelled", "InCompleted"],
       default: "pending",
     },
   },
@@ -39,5 +42,5 @@ const appointmentSchema = new mongoose.Schema(
   }
 );
 
-const AppointmentModel = mongoose.model("Appointment", appointmentSchema);
+const AppointmentModel = mongoose.model("Appointments", appointmentSchema);
 export default AppointmentModel;
