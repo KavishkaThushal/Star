@@ -5,4 +5,4 @@ const router = express.Router();
 
 router.post('/', submitContactForm);
 
-export default router;
+export  {router as contactRouter};

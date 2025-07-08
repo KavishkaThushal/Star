@@ -7,7 +7,7 @@ import { authRouter } from "./routes/authRoute.js";
 import { storeRouter } from "./routes/storeRoute.js";
 import { appointmentRouter } from "./routes/appointmentRoute.js";
 import { adminRouter } from "./routes/adminRoute.js";
-import contactRoutes from "./routes/contactRoutes.js";
+import { contactRouter } from "./routes/contactRoutes.js";
 
 dotenv.config();
 
@@ -22,11 +22,7 @@ app.use(
     origin: ["https://star-mobile.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-    ],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 app.options("*", cors());
@@ -40,7 +36,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/store", storeRouter);
 app.use("/api/appointment", appointmentRouter);
 app.use("/api/admin", adminRouter);
-app.use('/api/contact', contactRoutes);
+app.use("/api/contact", contactRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
