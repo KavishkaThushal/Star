@@ -7,13 +7,15 @@ import {
   sendSuccessResponse,
 } from "../utils/responseUtil.js";
 import {
-  comparePassword, compareRefreshToken,
+  comparePassword,
+  compareRefreshToken,
   hashPassword,
   hashRefreshToken,
 } from "../utils/authUtils.js";
 import {
   generateAccessToken,
-  generateRefreshToken, verifyRefreshToken,
+  generateRefreshToken,
+  verifyRefreshToken,
 } from "../utils/tokenUtils.js";
 import UserModel from "../models/userModel.js";
 import dotenv from "dotenv";
@@ -103,6 +105,33 @@ export const logout = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal server error ", err);
   }
 };
+//User API
+export const user = async (req, res) => {
+  try {
+    const { userId } = req.user; // Assuming you have userId in req.user
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return sendErrorResponse(res, 404, "User not found");
+    }
+
+    const response = {
+      id: user._id,
+      userName: user.userName,
+      email: user.email,
+      appointments: user.appointments,
+    };
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "User details retrieved successfully",
+      response
+    );
+  } catch (err) {
+    return sendErrorResponse(res, 500, "Internal server error ", err);
+  }
+};
 
 export const refreshAccessToken = async (req, res) => {
   try {
@@ -114,7 +143,11 @@ export const refreshAccessToken = async (req, res) => {
     const decoded = verifyRefreshToken(refreshToken);
     const user = await UserModel.findById(decoded.userId);
     if (!user || !user.refreshToken) {
-      return sendErrorResponse(res, 403, "Refresh token invalid or user not found");
+      return sendErrorResponse(
+        res,
+        403,
+        "Refresh token invalid or user not found"
+      );
     }
 
     const isMatch = await compareRefreshToken(refreshToken, user.refreshToken);
