@@ -19,7 +19,7 @@ dotenv.config();
 
 app.use(
   cors({
-    origin: [process.env.BASE_DEV_URL, process.env.BASE_LOCAL_URL,"https://star-mobile.vercel.app/"],
+    origin: [process.env.BASE_DEV_URL, process.env.BASE_LOCAL_URL,"https://star-mobile.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
