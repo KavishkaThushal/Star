@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/create-appointment", verifyToken, makeAppointment);
 router.get("/get-user-appointments", verifyToken, getAppointments);
-router.delete("/cancel-appointment/:id", verifyToken, cancelAppointment);
 router.get('/fetch/all', verifyToken, getAllAppointments);
+router.delete("/cancel-appointment/:id", verifyToken, cancelAppointment);
 router.put('/progress/:id',verifyToken, updateAppointmentProgress);
 export { router as appointmentRouter };
